@@ -1,26 +1,49 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: $title$
+  name: mongo-db
   labels:
-    app: $title$
+    app: mongo-db
 spec:
-  replicas: $3$
+  replicas: 1
   selector:
     matchLabels:
-      app: $title$
+      app: mongo-db
   template:
     metadata:
-      name: $title$
+      name: mongo-db
       labels:
-        app: $title$
+        app: mongo-db
     spec:
       containers:
-        - name: $title$
-          image: $nginx$
+        - name: mongo-db
+          image: mongo
           imagePullPolicy: IfNotPresent
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: root-username
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: root-password
           ports:
-            - containerPort: $80$
-              protocol: $TCP$
+            - containerPort: 27017
+              protocol: TCP
       restartPolicy: Always
-      $END$
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+spec:
+  selector:
+    app: mongo-db
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+  type: NodePort
